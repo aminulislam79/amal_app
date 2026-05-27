@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="bn" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d3b2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="আমল">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>প্রতিদিনের আমল</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #0d3b2e;
+    --green-mid: #1a5c44;
+    --green-light: #2d7a5e;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-pale: #f5e6b8;
+    --cream: #faf6ed;
+    --cream-dark: #f0e8d5;
+    --text-dark: #1a1209;
+    --text-mid: #3d2b0f;
+    --text-light: #7a6040;
+    --white: #ffffff;
+    --shadow: rgba(13, 59, 46, 0.15);
+    --checked-bg: #e8f5f0;
+    --checked-border: #2d7a5e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: var(--green-deep);
+    min-height: 100vh;
+    color: var(--text-dark);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,168,76,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,168,76,0.08) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.04'%3E%3Cpath d='M30 0 L36 24 L60 30 L36 36 L30 60 L24 36 L0 30 L24 24Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    background: linear-gradient(160deg, var(--green-mid) 0%, var(--green-deep) 100%);
+    padding: 20px 20px 0;
+    position: relative;
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+  }
+
+  .bismillah {
+    font-family: 'Amiri', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 8px rgba(201,168,76,0.4);
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .date-box { text-align: center; margin-bottom: 14px; }
+  .date-hijri { font-family: 'Amiri', serif; font-size: 13px; color: var(--gold); letter-spacing: 1px; }
+  .date-bengali { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+  .progress-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 24px;
+  }
+
+  .progress-circle-wrap {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin-bottom: 10px;
+  }
+
+  .progress-circle-wrap svg { transform: rotate(-90deg); width: 130px; height: 130px; }
+  .progress-circle-wrap .bg-circle { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; }
+  .progress-circle-wrap .fg-circle {
+    fill: none;
+    stroke: url(#goldGrad);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 345;
+    stroke-dashoffset: 345;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .progress-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-percent { font-size: 30px; font-weight: 700; color: var(--white); line-height: 1; }
+  .progress-label { font-size: 11px; color: var(--gold); margin-top: 3px; }
+  .progress-count { font-size: 13px; color: rgba(255,255,255,0.7); }
+
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--cream);
+  }
+
+  .ornament-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
+  .ornament-icon { color: var(--gold); font-size: 18px; }
+
+  .tabs {
+    display: flex;
+    background: var(--cream);
+    padding: 0 16px;
+    gap: 4px;
+    border-bottom: 2px solid var(--cream-dark);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-light);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn.active { color: var(--green-mid); border-bottom-color: var(--gold); font-weight: 600; }
+
+  .main { flex: 1; background: var(--cream); padding: 16px 16px 100px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+    border-radius: 10px;
+    border-left: 4px solid var(--gold);
+  }
+
+  .section-icon { font-size: 22px; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 600; color: var(--white); }
+  .section-subtitle { font-size: 11px; color: var(--gold); margin-top: 1px; }
+
+  .amal-item {
+    background: var(--white);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1.5px solid var(--cream-dark);
+    overflow: hidden;
+    transition: all 0.25s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .amal-item.checked { border-color: var(--checked-border); background: var(--checked-bg); }
+
+  .amal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .check-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+    transition: all 0.25s;
+    position: relative;
+  }
+
+  .amal-item.checked .check-circle { background: var(--green-light); border-color: var(--green-light); }
+
+  .check-circle::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s;
+  }
+
+  .amal-item.checked .check-circle::after { opacity: 1; transform: scale(1); }
+
+  .amal-text { flex: 1; }
+  .amal-name { font-size: 14px; font-weight: 500; color: var(--text-dark); line-height: 1.4; transition: color 0.2s; }
+  .amal-item.checked .amal-name { color: var(--green-mid); text-decoration: line-through; text-decoration-color: rgba(45,122,94,0.4); }
+  .amal-arabic { font-family: 'Amiri', serif; font-size: 13px; color: var(--gold); margin-top: 2px; direction: rtl; }
+  .amal-detail { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  .amal-badge { flex-shrink: 0; font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.3px; }
+  .badge-fard { background: #fde8e8; color: #c0392b; }
+  .badge-sunnah { background: #e8f0fd; color: #2563eb; }
+  .badge-nafl { background: #fef3cd; color: #92640a; }
+  .badge-zikr { background: #e8f5f0; color: #1a5c44; }
+
+  .counter-item {
+    background: var(--white);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1.5px solid var(--cream-dark);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .counter-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .counter-info { flex: 1; }
+  .counter-name { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+  .counter-arabic { font-family: 'Amiri', serif; font-size: 13px; color: var(--gold); direction: rtl; margin-top: 2px; }
+  .counter-target { font-size: 11px; color: var(--text-light); }
+
+  .counter-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .counter-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .counter-btn.minus { background: #fde8e8; color: #c0392b; }
+  .counter-btn.plus { background: var(--green-mid); color: white; }
+  .counter-btn:active { transform: scale(0.9); }
+
+  .counter-num { font-size: 20px; font-weight: 700; color: var(--green-deep); min-width: 36px; text-align: center; }
+
+  .counter-progress { height: 4px; background: var(--cream-dark); margin: 0 14px 12px; border-radius: 2px; overflow: hidden; }
+  .counter-progress-bar { height: 100%; background: linear-gradient(to right, var(--green-light), var(--gold)); border-radius: 2px; transition: width 0.3s; }
+
+  .quote-card {
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(201,168,76,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quote-card::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-family: 'Amiri', serif;
+    font-size: 80px;
+    color: rgba(201,168,76,0.2);
+    line-height: 1;
+  }
+
+  .quote-text { font-family: 'Amiri', serif; font-size: 15px; color: var(--gold-light); text-align: center; line-height: 1.7; position: relative; }
+  .quote-source { font-size: 11px; color: rgba(255,255,255,0.5); text-align: center; margin-top: 6px; }
+
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--white);
+    border-top: 1px solid var(--cream-dark);
+    padding: 10px 16px 16px;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    z-index: 100;
+  }
+
+  .reset-btn {
+    flex: 1;
+    padding: 13px;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 10px;
+    background: var(--cream);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:active { background: var(--cream-dark); }
+
+  .complete-btn {
+    flex: 2;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-deep) 100%);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 12px rgba(13,59,46,0.3);
+  }
+
+  .complete-btn:active { transform: scale(0.98); }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,59,46,0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 30px 24px;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+    border: 2px solid var(--gold);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .modal-overlay.show .modal { transform: scale(1); }
+
+  .modal-emoji { font-size: 48px; margin-bottom: 12px; }
+  .modal-title { font-size: 22px; font-weight: 700; color: var(--green-deep); margin-bottom: 8px; }
+  .modal-arabic { font-family: 'Amiri', serif; font-size: 18px; color: var(--gold); margin-bottom: 12px; direction: rtl; }
+  .modal-msg { font-size: 14px; color: var(--text-mid); line-height: 1.6; margin-bottom: 20px; }
+
+  .modal-close {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+    border: none;
+    border-radius: 10px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--green-deep);
+    color: var(--gold-light);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid rgba(201,168,76,0.3);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 150;
+    white-space: nowrap;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <div class="header">
+    <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+    <div class="date-box">
+      <div class="date-hijri" id="hijriDate">— আজকের আমলের হিসাব —</div>
+      <div class="date-bengali" id="bengaliDate"></div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-circle-wrap">
+        <svg viewBox="0 0 130 130">
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#c9a84c"/>
+              <stop offset="100%" style="stop-color:#f5e6b8"/>
+            </linearGradient>
+          </defs>
+          <circle class="bg-circle" cx="65" cy="65" r="55"/>
+          <circle class="fg-circle" id="progressCircle" cx="65" cy="65" r="55"/>
+        </svg>
+        <div class="progress-inner">
+          <div class="progress-percent" id="progressPercent">০%</div>
+          <div class="progress-label">সম্পন্ন</div>
+        </div>
+      </div>
+      <div class="progress-count" id="progressCount">০ / ০ আমল</div>
+    </div>
+  </div>
+
+  <div class="ornament">
+    <div class="ornament-line"></div>
+    <div class="ornament-icon">✦</div>
+    <div class="ornament-line"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('salah',this)">🕌 সালাত</button>
+    <button class="tab-btn" onclick="switchTab('morning',this)">🌅 সকাল</button>
+    <button class="tab-btn" onclick="switchTab('evening',this)">🌙 সন্ধ্যা</button>
+    <button class="tab-btn" onclick="switchTab('zikr',this)">📿 যিকর</button>
+    <button class="tab-btn" onclick="switchTab('quran',this)">📖 কুরআন</button>
+    <button class="tab-btn" onclick="switchTab('other',this)">⭐ অন্যান্য</button>
+  </div>
+
+  <div class="main">
+
+    <!-- SALAH -->
+    <div class="section active" id="tab-salah">
+      <div class="section-header">
+        <div class="section-icon">🕌</div>
+        <div>
+          <div class="section-title">পাঁচ ওয়াক্ত সালাত</div>
+          <div class="section-subtitle">আল্লাহর সাথে সংযোগের সেতু</div>
+        </div>
+      </div>
+
+      <div class="amal-item" data-id="fajr" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ফজরের সালাত</div><div class="amal-arabic">صَلَاةُ الْفَجْرِ</div><div class="amal-detail">২ রাকাত সুন্নত + ২ রাকাত ফরজ</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="zuhr" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">যোহরের সালাত</div><div class="amal-arabic">صَلَاةُ الظُّهْرِ</div><div class="amal-detail">৪ সুন্নত + ৪ ফরজ + ২ সুন্নত</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="asr" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">আসরের সালাত</div><div class="amal-arabic">صَلَاةُ الْعَصْرِ</div><div class="amal-detail">৪ রাকাত ফরজ</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="maghrib" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">মাগরিবের সালাত</div><div class="amal-arabic">صَلَاةُ الْمَغْرِبِ</div><div class="amal-detail">৩ রাকাত ফরজ + ২ সুন্নত</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="isha" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ইশার সালাত</div><div class="amal-arabic">صَلَاةُ الْعِشَاءِ</div><div class="amal-detail">৪ ফরজ + ২ সুন্নত + ৩ বিতর</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="tahajjud" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">তাহাজ্জুদ সালাত</div><div class="amal-arabic">صَلَاةُ التَّهَجُّدِ</div><div class="amal-detail">কমপক্ষে ২ রাকাত, রাত ৩টার পর</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="duha" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">চাশতের (দুহা) সালাত</div><div class="amal-arabic">صَلَاةُ الضُّحَى</div><div class="amal-detail">সূর্যোদয়ের ১৫ মিনিট পর, ২-৮ রাকাত</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+    </div>
+
+    <!-- MORNING -->
+    <div class="section" id="tab-morning">
+      <div class="section-header">
+        <div class="section-icon">🌅</div>
+        <div>
+          <div class="section-title">সকালের আমল</div>
+          <div class="section-subtitle">ফজরের পর থেকে সূর্যোদয়ের আগ পর্যন্ত</div>
+        </div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-text">যে ব্যক্তি ফজরের সালাত জামাতে আদায় করে, সে আল্লাহর যিম্মায় থাকে।</div>
+        <div class="quote-source">— সহীহ মুসলিম</div>
+      </div>
+
+      <div class="amal-item" data-id="m-wudu" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ওযু করা (মিসওয়াক সহ)</div><div class="amal-arabic">السِّوَاكُ وَالْوُضُوءُ</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="m-askar" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সকালের আযকার পড়া</div><div class="amal-arabic">أَذْكَارُ الصَّبَاحِ</div><div class="amal-detail">আয়াতুল কুরসি, তিন কুল, দুআ</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="m-sunrise" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সূর্যোদয় পর্যন্ত মসজিদে বসা</div><div class="amal-arabic">الْجُلُوسُ فِي الْمَسْجِدِ</div><div class="amal-detail">তারপর ২ রাকাত — হজের সওয়াব</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="m-istighfar" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">১০০ বার ইস্তিগফার</div><div class="amal-arabic">أَسْتَغْفِرُ اللَّهَ</div></div><span class="amal-badge badge-zikr">যিকর</span></div>
+      </div>
+
+      <div class="amal-item" data-id="m-salawat" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সকালে দরুদ পাঠ</div><div class="amal-arabic">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ</div><div class="amal-detail">কমপক্ষে ১০ বার</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="m-dua" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ব্যক্তিগত দুআ করা</div><div class="amal-arabic">الدُّعَاءُ الشَّخْصِيُّ</div><div class="amal-detail">নিজের, পরিবার ও উম্মতের জন্য</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+    </div>
+
+    <!-- EVENING -->
+    <div class="section" id="tab-evening">
+      <div class="section-header">
+        <div class="section-icon">🌙</div>
+        <div>
+          <div class="section-title">সন্ধ্যার আমল</div>
+          <div class="section-subtitle">আসরের পর থেকে রাত পর্যন্ত</div>
+        </div>
+      </div>
+
+      <div class="amal-item" data-id="e-askar" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সন্ধ্যার আযকার পড়া</div><div class="amal-arabic">أَذْكَارُ الْمَسَاءِ</div><div class="amal-detail">আয়াতুল কুরসি, তিন কুল, দুআ</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="e-quran" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সূরা মুলক তিলাওয়াত</div><div class="amal-arabic">سُورَةُ الْمُلْكِ</div><div class="amal-detail">রাতে পড়লে কবরের আযাব থেকে রক্ষা</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="e-tawbah" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সন্ধ্যায় তওবা করা</div><div class="amal-arabic">التَّوْبَةُ الْمَسَائِيَّةُ</div><div class="amal-detail">দিনের গুনাহ থেকে তওবা</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="e-kafirun" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ঘুমানোর আগে দুআ</div><div class="amal-arabic">دُعَاءُ النَّوْمِ</div><div class="amal-detail">আল্লাহুম্মা বিসমিকা আমুতু ওয়া আহইয়া</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="e-tasbih" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">শোয়ার আগে তাসবিহে ফাতিমি</div><div class="amal-arabic">تَسْبِيحُ فَاطِمَة</div><div class="amal-detail">৩৩ সুবহান + ৩৩ আলহামদু + ৩৪ আকবার</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+    </div>
+
+    <!-- ZIKR -->
+    <div class="section" id="tab-zikr">
+      <div class="section-header">
+        <div class="section-icon">📿</div>
+        <div>
+          <div class="section-title">যিকর কাউন্টার</div>
+          <div class="section-subtitle">আল্লাহর স্মরণেই হৃদয় শান্ত হয়</div>
+        </div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">সুবহানাল্লাহ</div><div class="counter-arabic">سُبْحَانَ اللَّهِ</div><div class="counter-target">লক্ষ্য: ৩৩</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-subhan',-1)">−</button><span class="counter-num" id="num-c-subhan">০</span><button class="counter-btn plus" onclick="adjustCounter('c-subhan',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-subhan" style="width:0%"></div></div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">আলহামদুলিল্লাহ</div><div class="counter-arabic">الْحَمْدُ لِلَّهِ</div><div class="counter-target">লক্ষ্য: ৩৩</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-hamd',-1)">−</button><span class="counter-num" id="num-c-hamd">০</span><button class="counter-btn plus" onclick="adjustCounter('c-hamd',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-hamd" style="width:0%"></div></div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">আল্লাহু আকবার</div><div class="counter-arabic">اللَّهُ أَكْبَرُ</div><div class="counter-target">লক্ষ্য: ৩৪</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-akbar',-1)">−</button><span class="counter-num" id="num-c-akbar">০</span><button class="counter-btn plus" onclick="adjustCounter('c-akbar',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-akbar" style="width:0%"></div></div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">লা ইলাহা ইল্লাল্লাহ</div><div class="counter-arabic">لَا إِلَهَ إِلَّا اللَّهُ</div><div class="counter-target">লক্ষ্য: ১০০</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-kalima',-1)">−</button><span class="counter-num" id="num-c-kalima">০</span><button class="counter-btn plus" onclick="adjustCounter('c-kalima',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-kalima" style="width:0%"></div></div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">দরুদ শরীফ</div><div class="counter-arabic">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ</div><div class="counter-target">লক্ষ্য: ১০০</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-darud',-1)">−</button><span class="counter-num" id="num-c-darud">০</span><button class="counter-btn plus" onclick="adjustCounter('c-darud',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-darud" style="width:0%"></div></div>
+      </div>
+
+      <div class="counter-item">
+        <div class="counter-row"><div class="counter-info"><div class="counter-name">ইস্তিগফার</div><div class="counter-arabic">أَسْتَغْفِرُ اللَّهَ</div><div class="counter-target">লক্ষ্য: ১০০</div></div><div class="counter-controls"><button class="counter-btn minus" onclick="adjustCounter('c-istighfar',-1)">−</button><span class="counter-num" id="num-c-istighfar">০</span><button class="counter-btn plus" onclick="adjustCounter('c-istighfar',1)">+</button></div></div>
+        <div class="counter-progress"><div class="counter-progress-bar" id="bar-c-istighfar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- QURAN -->
+    <div class="section" id="tab-quran">
+      <div class="section-header">
+        <div class="section-icon">📖</div>
+        <div>
+          <div class="section-title">কুরআন তিলাওয়াত</div>
+          <div class="section-subtitle">প্রতিটি হরফে ১০ নেকি</div>
+        </div>
+      </div>
+
+      <div class="amal-item" data-id="q-fajr" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">ফজরের পর তিলাওয়াত</div><div class="amal-arabic">تِلَاوَةُ الْقُرْآنِ بَعْدَ الْفَجْرِ</div><div class="amal-detail">কমপক্ষে ১ পাতা / ১ রুকু</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="q-page" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">দৈনিক কুরআন পড়া</div><div class="amal-arabic">الْوِرْدُ الْيَوْمِيُّ</div><div class="amal-detail">কমপক্ষে ১ পারা / নিজের টার্গেট</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="q-kahf" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সূরা কাহফ (শুক্রবার)</div><div class="amal-arabic">سُورَةُ الْكَهْفِ</div><div class="amal-detail">দুই জুমার মাঝে আলো পাবেন</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="q-ayatul" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">আয়াতুল কুরসি (সকাল-সন্ধ্যা)</div><div class="amal-arabic">آيَةُ الْكُرْسِيِّ</div><div class="amal-detail">সালাতের পর একবার — জান্নাতের পথ</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="q-tafsir" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">তাফসির / অর্থ পড়া</div><div class="amal-arabic">تَفْسِيرُ الْقُرْآنِ</div><div class="amal-detail">বোঝার সাথে তিলাওয়াত</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+    </div>
+
+    <!-- OTHER -->
+    <div class="section" id="tab-other">
+      <div class="section-header">
+        <div class="section-icon">⭐</div>
+        <div>
+          <div class="section-title">অন্যান্য আমল</div>
+          <div class="section-subtitle">ছোট আমল, বড় প্রতিদান</div>
+        </div>
+      </div>
+
+      <div class="amal-item" data-id="o-sadaqah" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সদকা / দান করা</div><div class="amal-arabic">الصَّدَقَةُ الْيَوْمِيَّةُ</div><div class="amal-detail">যতটুকু সম্ভব, প্রতিদিন</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-parents" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">বাবা-মায়ের সেবা করা</div><div class="amal-arabic">بِرُّ الْوَالِدَيْنِ</div><div class="amal-detail">তাদের জন্য দুআ করা</div></div><span class="amal-badge badge-fard">ওয়াজিব</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-halal" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">হালাল খাবার খাওয়া</div><div class="amal-arabic">أَكْلُ الْحَلَالِ</div><div class="amal-detail">বিসমিল্লাহ বলে, হাতে খাওয়া</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-salam" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">সালাম দেওয়া</div><div class="amal-arabic">إِفْشَاءُ السَّلَامِ</div><div class="amal-detail">মুসলিম ভাইকে সালাম দেওয়া</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-ghibah" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">গীবত থেকে বিরত থাকা</div><div class="amal-arabic">اجْتِنَابُ الْغِيبَةِ</div><div class="amal-detail">আজ কারো গীবত করিনি ✓</div></div><span class="amal-badge badge-fard">ফরজ</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-smile" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">মুচকি হাসি দেওয়া</div><div class="amal-arabic">التَّبَسُّمُ فِي وَجْهِ أَخِيكَ</div><div class="amal-detail">ভাইয়ের মুখে হাসি দেওয়া সদকা</div></div><span class="amal-badge badge-sunnah">সুন্নত</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-knowledge" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">দ্বীনি ইলম অর্জন</div><div class="amal-arabic">طَلَبُ الْعِلْمِ</div><div class="amal-detail">হাদিস/ফিকাহ পড়া, লেকচার শোনা</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+
+      <div class="amal-item" data-id="o-fast" onclick="toggleAmal(this)">
+        <div class="amal-row"><div class="check-circle"></div><div class="amal-text"><div class="amal-name">নফল রোযা</div><div class="amal-arabic">الصَّوْمُ النَّافِلَةُ</div><div class="amal-detail">সোম-বৃহস্পতিবার, আইয়্যামে বীয</div></div><span class="amal-badge badge-nafl">নফল</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <button class="reset-btn" onclick="confirmReset()">🔄 রিসেট</button>
+  <button class="complete-btn" onclick="showCompletion()">আলহামদুলিল্লাহ ✓</button>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-emoji">🌙✨🌙</div>
+    <div class="modal-title">মাশাআল্লাহ!</div>
+    <div class="modal-arabic">جَزَاكَ اللَّهُ خَيْرًا</div>
+    <div class="modal-msg" id="modalMsg"></div>
+    <button class="modal-close" onclick="closeModal(null)">আমীন 🤲</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  const counterConfig = {
+    'c-subhan':    { target: 33 },
+    'c-hamd':      { target: 33 },
+    'c-akbar':     { target: 34 },
+    'c-kalima':    { target: 100 },
+    'c-darud':     { target: 100 },
+    'c-istighfar': { target: 100 }
+  };
+
+  const toBn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+  let counters = {};
+  Object.keys(counterConfig).forEach(k => counters[k] = 0);
+
+  function loadState() {
+    try {
+      const saved = localStorage.getItem('amal_pwa_v1');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.date === new Date().toDateString()) {
+          if (data.checks) Object.keys(data.checks).forEach(id => {
+            const el = document.querySelector(`.amal-item[data-id="${id}"]`);
+            if (el && data.checks[id]) el.classList.add('checked');
+          });
+          if (data.counters) Object.keys(data.counters).forEach(k => {
+            counters[k] = data.counters[k] || 0;
+            updateCounterDisplay(k);
+          });
+        }
+      }
+    } catch(e) {}
+    updateProgress();
+  }
+
+  function saveState() {
+    const checks = {};
+    document.querySelectorAll('.amal-item').forEach(el => {
+      checks[el.dataset.id] = el.classList.contains('checked');
+    });
+    try {
+      localStorage.setItem('amal_pwa_v1', JSON.stringify({
+        date: new Date().toDateString(), checks, counters
+      }));
+    } catch(e) {}
+  }
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    btn.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+  }
+
+  function toggleAmal(el) {
+    el.classList.toggle('checked');
+    if (el.classList.contains('checked')) showToast('আমল সম্পন্ন! ✓');
+    updateProgress();
+    saveState();
+  }
+
+  function updateProgress() {
+    const items = document.querySelectorAll('.amal-item');
+    const total = items.length;
+    const done = document.querySelectorAll('.amal-item.checked').length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    document.getElementById('progressPercent').textContent = toBn(pct) + '%';
+    document.getElementById('progressCount').textContent = toBn(done) + ' / ' + toBn(total) + ' আমল';
+    const circ = 345;
+    document.getElementById('progressCircle').style.strokeDashoffset = circ - (circ * pct / 100);
+  }
+
+  function adjustCounter(id, delta) {
+    counters[id] = Math.max(0, counters[id] + delta);
+    updateCounterDisplay(id);
+    saveState();
+  }
+
+  function updateCounterDisplay(id) {
+    const val = counters[id];
+    const target = counterConfig[id].target;
+    const el = document.getElementById('num-' + id);
+    const bar = document.getElementById('bar-' + id);
+    if (el) el.textContent = toBn(val);
+    if (bar) {
+      const pct = Math.min(100, (val / target) * 100);
+      bar.style.width = pct + '%';
+      if (pct >= 100) bar.style.background = 'linear-gradient(to right, #c9a84c, #f5e6b8)';
+    }
+    if (val === target) showToast('আলহামদুলিল্লাহ! যিকর সম্পন্ন 🎉');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function showCompletion() {
+    const total = document.querySelectorAll('.amal-item').length;
+    const done = document.querySelectorAll('.amal-item.checked').length;
+    const pct = Math.round((done / total) * 100);
+    let msg = pct === 100
+      ? 'সুবহানাল্লাহ! সমস্ত আমল সম্পন্ন! আল্লাহ আপনার আমল কবুল করুন। আমীন।'
+      : pct >= 70
+      ? `মাশাআল্লাহ! ${toBn(pct)}% আমল সম্পন্ন। আল্লাহ বাকিগুলোর তাওফিক দিন।`
+      : `${toBn(done)}টি আমল সম্পন্ন। প্রতিটি আমলই মূল্যবান। আল্লাহ কবুল করুন।`;
+    document.getElementById('modalMsg').textContent = msg;
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modal'))
+      document.getElementById('modal').classList.remove('show');
+  }
+
+  function confirmReset() {
+    if (confirm('আজকের সমস্ত আমল রিসেট করবেন?')) {
+      document.querySelectorAll('.amal-item').forEach(el => el.classList.remove('checked'));
+      Object.keys(counters).forEach(k => { counters[k] = 0; updateCounterDisplay(k); });
+      updateProgress();
+      saveState();
+      showToast('রিসেট হয়েছে');
+    }
+  }
+
+  function setDate() {
+    const now = new Date();
+    const days = ['রোববার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+    const months = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+    document.getElementById('bengaliDate').textContent =
+      `${days[now.getDay()]}, ${toBn(now.getDate())} ${months[now.getMonth()]} ${toBn(now.getFullYear())}`;
+  }
+
+  setDate();
+  loadState();
+</script>
+</body>
+</html>

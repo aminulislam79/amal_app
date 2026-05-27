@@ -1,0 +1,25 @@
+{
+  "name": "প্রতিদিনের আমল",
+  "short_name": "আমল",
+  "description": "দৈনিক ইসলামিক আমল চেকলিস্ট",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d3b2e",
+  "theme_color": "#0d3b2e",
+  "orientation": "portrait",
+  "lang": "bn",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
